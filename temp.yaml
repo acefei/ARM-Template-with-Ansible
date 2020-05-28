@@ -1,0 +1,24 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    rg_name: CloudOps
+    location: westus
+  tasks:
+    - name: Create a resource group
+      azure_rm_resourcegroup:
+        name: "{{ rg_name }}"
+        location: "{{ location }}"
+    - name: Deploy ARM Template Exported from Azure Portal
+      azure_rm_deployment:
+        state: present
+        resource_group_name: "{{ rg_name }}"
+        location: "{{ location }}"
+        deployment_mode: incremental
+        template: "{{ lookup('file','template.json') }}"
+        parameters: "{{ (lookup('file','parameters.json') | from_json).parameters }}"
+      register: deploy_output
+    - name: Get Azure Resource Manager Template Output
+      debug:
+        msg: "{{ deploy_output }}"
